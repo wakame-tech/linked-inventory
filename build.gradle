@@ -1,0 +1,61 @@
+
+plugins {
+    id 'idea'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.10'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+}
+
+group = pluginGroup
+version = pluginVersion
+
+configurations {
+    embed
+    compile.extendsFrom(embed)
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'spigotmc-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/groups/public/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    maven {
+        name = 'kotlin4mc'
+        url = 'https://mymavenrepo.com/repo/NIp3fBk55f5oF6VI1Wso/'
+    }
+}
+
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+//    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile 'org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT'
+    embed "org.jetbrains.kotlin:kotlin-stdlib:1.3.10"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:1.3.10"
+    compileOnly 'fr.rhaz.minecraft:kotlin4mc:2.1.1'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+compileKotlin{
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+
+// Build Artifact
+jar {
+    manifest {
+        attributes 'Main-Class': 'tech.wakame.linked_inventory.Main'
+    }
+
+    from { configurations.embed.collect { it.isDirectory() ? it : zipTree(it) } }
+}
