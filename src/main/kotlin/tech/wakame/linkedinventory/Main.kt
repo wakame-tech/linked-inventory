@@ -1,16 +1,19 @@
 package tech.wakame.linkedinventory
 
-import org.bukkit.plugin.java.JavaPlugin
 import fr.rhaz.minecraft.kotlin.bukkit.*
+import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.plugin.java.JavaPlugin
+
 
 class Main : JavaPlugin() {
-    override fun onEnable() {
-        // Plugin startup logic
-        val a = listOf<Int>(1, 2, 3)
-        logger.info("Hello Spigot! ${a}")
+  override fun onEnable() {
+    // MineAll, CutAll
+    listen<BlockBreakEvent> {
+      EventHandler.mineAll(it.block, it.player.inventory.itemInMainHand, it.player.location)
     }
+  }
 
-    override fun onDisable() {
-        // Plugin shutdown logic
-    }
+  override fun onDisable() {
+
+  }
 }

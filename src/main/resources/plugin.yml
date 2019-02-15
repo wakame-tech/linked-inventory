@@ -1,4 +1,4 @@
 name: Linked_inventory
 version: 0.3alpha
-main: tech.wakame.linked_inventory.Main
+main: tech.wakame.linkedinventory.Main
 api-version: 1.13
