@@ -59,3 +59,12 @@ jar {
 
     from { configurations.embed.collect { it.isDirectory() ? it : zipTree(it) } }
 }
+
+// Send plugin to server
+build {
+    doLast {
+        exec {
+            commandLine 'sh', '~/Documents/spigot/forward.sh'
+        }
+    }
+}
