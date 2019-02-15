@@ -37,6 +37,7 @@ object Constants {
       Material.EMERALD_ORE,
       Material.GOLD_ORE,
       Material.LAPIS_ORE,
+      Material.GLOWSTONE,
       Material.NETHER_QUARTZ_ORE,
       Material.REDSTONE_ORE
     )
@@ -47,6 +48,11 @@ object Constants {
       Material.BIRCH_LOG,
       Material.DARK_OAK_LOG,
       Material.JUNGLE_LOG
+    )
+    val ALL_DIGGING = arrayOf(
+      Material.GRAVEL,
+      Material.SOUL_SAND,
+      Material.CLAY
     )
   }
 }

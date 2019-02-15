@@ -2,3 +2,8 @@ name: Linked_inventory
 version: 0.3alpha
 main: tech.wakame.linkedinventory.Main
 api-version: 1.13
+commands:
+  set:
+    description: tagged current location
+  tp:
+    description: teleport to tagged location

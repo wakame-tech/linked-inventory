@@ -1,50 +1,50 @@
 package tech.wakame.linkedinventory
 
-import fr.rhaz.minecraft.kotlin.bukkit.*
 import org.bukkit.Location
-import org.bukkit.entity.Player
-import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.command.Command
+import org.bukkit.command.CommandSender
+import org.bukkit.configuration.Configuration
 import org.bukkit.plugin.java.JavaPlugin
 
 
 class Main : JavaPlugin() {
-  object LIConfig : ConfigFile("config") {
-    var locationsData by stringList("locations")
-    val locations: MutableMap<String, Location> = mutableMapOf()
+  object LIConfig {
+    lateinit var config: Configuration
+    var locations: MutableMap<String, Location> = mutableMapOf()
 
-    override fun reload() {
-      locationsData = locations.map { it.toString() }
+    fun load(config: Configuration) {
+      this.config = config
+      config.getConfigurationSection("locations")?.let { section ->
+        locations = section.getKeys(false)
+          .combineNotNull { config["locations.$it"] as? Location }
+          .toMutableMap()
+      }
+    }
+
+    fun save(config: Configuration) {
+      config.createSection("locations")
+      locations.forEach { k, v ->
+        config.set("locations.$k", v)
+      }
     }
   }
 
   override fun onEnable() {
-    saveDefaultConfig()
-    // load config.yml
-    init(LIConfig)
-
-    LIConfig.locations["a"] = Location(server.worlds.first(), 0.0, 0.0, 0.0)
-
-    info(LIConfig.locations.toString())
-
-    // MineAll, CutAll
-    listen<BlockBreakEvent> {
-      EventHandler.mineAll(it.block, it.player.inventory.itemInMainHand, it.player.location)
-    }
-
-    // Locationer
-    command("set") { sender, args ->
-      if (sender !is Player) return@command
-      LIConfig.locations[args.first()] = sender.location
-      info("set ${sender.location} as ${args.first()}")
-    }
-
-    LIConfig.save()
-    LIConfig.reload()
+    logger.info("[LinkedInventory 0.3 alpha]")
+    server.pluginManager.registerEvents(EventHandler, this)
+    LIConfig.load(this.config)
   }
 
   override fun onDisable() {
-    LIConfig.save()
-
+    LIConfig.save(config)
     saveConfig()
+  }
+
+  override fun onCommand(sender: CommandSender?, command: Command?, label: String?, args: Array<out String>?): Boolean {
+    return if (label in Commander.commands) {
+      Commander.dispatch(sender, label, args)
+    } else {
+      super.onCommand(sender, command, label, args)
+    }
   }
 }
