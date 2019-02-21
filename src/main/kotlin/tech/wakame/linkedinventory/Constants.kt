@@ -39,7 +39,8 @@ object Constants {
       Material.LAPIS_ORE,
       Material.GLOWSTONE,
       Material.NETHER_QUARTZ_ORE,
-      Material.REDSTONE_ORE
+      Material.REDSTONE_ORE,
+      Material.OBSIDIAN
     )
     val ALL_CUTTING = arrayOf(
       Material.OAK_LOG,

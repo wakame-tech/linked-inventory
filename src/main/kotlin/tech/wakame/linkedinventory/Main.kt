@@ -11,21 +11,31 @@ class Main : JavaPlugin() {
   object LIConfig {
     lateinit var config: Configuration
     var locations: MutableMap<String, Location> = mutableMapOf()
+    var linkedChestLocations: MutableMap<String, Location> = mutableMapOf()
 
     fun load(config: Configuration) {
       this.config = config
-      config.getConfigurationSection("locations")?.let { section ->
-        locations = section.getKeys(false)
-          .combineNotNull { config["locations.$it"] as? Location }
-          .toMutableMap()
-      }
+      locations = getElements("locations")
+      linkedChestLocations = getElements("chests")
     }
 
-    fun save(config: Configuration) {
-      config.createSection("locations")
-      locations.forEach { k, v ->
-        config.set("locations.$k", v)
+    fun save() {
+      setElements("locations", locations)
+      setElements("chests", linkedChestLocations)
+    }
+
+    private inline fun <reified V : Any> getElements (path: String): MutableMap<String, V> {
+      config.getConfigurationSection(path)?.let { section ->
+        return section.getKeys(false)
+          .combineNotNull { config["$path.$it"] as? V }
+          .toMutableMap()
       }
+      return mutableMapOf()
+    }
+
+    private fun <V> setElements (path: String, data: MutableMap<String, V>) {
+      config.createSection(path)
+      data.forEach { k, v -> config.set("$path.$k", v) }
     }
   }
 
@@ -36,7 +46,7 @@ class Main : JavaPlugin() {
   }
 
   override fun onDisable() {
-    LIConfig.save(config)
+    LIConfig.save()
     saveConfig()
   }
 

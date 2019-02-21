@@ -7,3 +7,5 @@ commands:
     description: tagged current location
   tp:
     description: teleport to tagged location
+  open:
+    description: listup linked-inventpries
