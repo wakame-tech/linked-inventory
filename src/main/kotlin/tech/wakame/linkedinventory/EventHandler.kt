@@ -39,9 +39,7 @@ object EventHandler : Listener {
     if (event.view.title == "Linked Chests") {
       event.isCancelled = true
       if (event.slot !in event.view.topInventory.toList().filterNotNull().indices) return
-
       val key = event.inventory.getItem(event.slot).itemMeta.displayName
-      println(key)
       val loc = Main.LIConfig.linkedChestLocations.toList().first { (k, v) -> key == k }.second
       val inv = (loc.block.state as? InventoryHolder)?.inventory
       event.whoClicked.openInventory(inv)

@@ -3,6 +3,9 @@ package tech.wakame.linkedinventory
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
 
+/**
+ *  A group of enums, such as items.
+ */
 object Constants {
   val DIRECTIONS = arrayOf(
     BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST
