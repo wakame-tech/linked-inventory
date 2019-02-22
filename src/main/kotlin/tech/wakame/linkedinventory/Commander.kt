@@ -27,6 +27,7 @@ object Commander {
     command["set"] = { sender, params, options -> set(sender, params, options) }
     command["tp"] = { sender, params, options -> tp(sender, params, options) }
     command["open"] = { sender, params, options -> open(sender, params, options) }
+    command["build"] = { sender, params, options -> build(sender, params, options) }
   }
 
   /**
@@ -71,18 +72,24 @@ object Commander {
        -n <spot> : list up links which close to <spot>
     */
     options["-i"]?.let {
+      if (options["-i"] == null) {
+        sender.sendMessage("[/open] -i option needs string")
+        return@let
+      }
       val query = it.toUpperCase()
       filters.add { inventory ->
         inventory.toList().filterNotNull().any { itemStack -> query in itemStack.type.toString() }
       }
-    } ?:
-    sender.sendMessage("[/open] -i option needs string")
+    }
 
     options["-n"]?.let {
+      if (options["-n"] == null) {
+        sender.sendMessage("[/open] -n option needs spot name")
+        return@let
+      }
       val center = LIConfig.locations[it] ?: sender.location
       filters.add { inventory -> inventory.location.distance(center) < 50.0 }
-    } ?:
-    sender.sendMessage("[/open] -n option needs spot name")
+    }
 
     // create result view
     val linkedChestsIUI = Bukkit.createInventory(null, 54, "Linked Chests").also {
@@ -96,7 +103,6 @@ object Commander {
         }
         .filter { (_, inventory) -> // apply filters
           val filterResults = filters.map { filter -> filter(inventory) }
-          println(filterResults)
           filterResults.fold(true) { acc, cond -> acc && cond }
         }
         .take(54)
@@ -116,6 +122,22 @@ object Commander {
     return true
   }
 
+  fun build(sender: CommandSender, params: Array<String>, options: Map<String, String?>): Boolean {
+    val from = LIConfig.clipBoard[0]
+    val to = LIConfig.clipBoard[1]
+    if (from == null || to == null) {
+      sender.sendMessage("[/build] require 2 clipboarded locations")
+      return false
+    }
+
+    Builder.FrameWork(from to to)
+
+    return true
+  }
+
+  /**
+   *  dispatch command from [Main.onCommand()].
+   */
   fun dispatch(sender: CommandSender?, label: String?, args: Array<out String>?): Boolean {
     return if (label in commands && sender != null && args != null) {
       val (params, options) = args.toParamsAndOptions()

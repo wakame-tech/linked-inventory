@@ -14,18 +14,50 @@ import org.bukkit.inventory.DoubleChestInventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
 import java.util.*
+import tech.wakame.linkedinventory.Main.LIConfig
 
 object EventHandler : Listener {
+  /**
+   *
+   */
   @EventHandler
   fun onBlockBreak(event: BlockBreakEvent) {
+    // region selection
+    if (event.player.inventory.itemInMainHand.type == Material.STICK) {
+      event.isCancelled = true
+      // add to clipboard
+      when {
+        LIConfig.clipBoard[0] == null -> {
+          LIConfig.clipBoard[0] = event.block.location
+          event.player.sendMessage("[clipboard] first registered ${event.block.location.inspect()}")
+        }
+        // prevent from continuous selection
+        LIConfig.clipBoard[1] == null && LIConfig.clipBoard[0] != event.block.location -> {
+          LIConfig.clipBoard[1] = event.block.location
+          event.player.sendMessage("[clipboard] second registered ${event.block.location.inspect()}")
+        }
+        LIConfig.clipBoard[1] != null -> {
+          event.player.sendMessage("[clipboard] reset!")
+          LIConfig.clipBoard = arrayOf(null, null)
+        }
+      }
+      return
+    }
+
     mineAll(event.block, event.player.inventory.itemInMainHand, event.player.location)
   }
 
+  /**
+   *
+   */
   @EventHandler
   fun onPlayerJoin(event: PlayerJoinEvent) {
 
   }
 
+  /**
+   *
+   */
   @EventHandler
   fun onInventoryOpen(event: InventoryOpenEvent) {
     if (event.inventory is DoubleChestInventory) {
@@ -33,6 +65,9 @@ object EventHandler : Listener {
     }
   }
 
+  /**
+   *
+   */
   @EventHandler
   fun onInventoryClick(event: InventoryClickEvent) {
     // when click out of inventory, [event.slot] will be -999.
@@ -40,12 +75,15 @@ object EventHandler : Listener {
       event.isCancelled = true
       if (event.slot !in event.view.topInventory.toList().filterNotNull().indices) return
       val key = event.inventory.getItem(event.slot).itemMeta.displayName
-      val loc = Main.LIConfig.linkedChestLocations.toList().first { (k, v) -> key == k }.second
+      val loc = LIConfig.linkedChestLocations.toList().first { (k, v) -> key == k }.second
       val inv = (loc.block.state as? InventoryHolder)?.inventory
       event.whoClicked.openInventory(inv)
     }
   }
 
+  /**
+   *
+   */
   private fun mineAll(firstTarget: Block, tool: ItemStack, dest: Location) {
     if (
       !(tool.type in Constants.Tools.PICKAXES && firstTarget.type in Constants.Blocks.ALL_MINING) &&

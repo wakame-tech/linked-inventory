@@ -9,3 +9,5 @@ commands:
     description: teleport to tagged location
   open:
     description: listup linked-inventpries
+  build:
+    description: test

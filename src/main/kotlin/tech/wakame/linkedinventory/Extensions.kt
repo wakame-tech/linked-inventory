@@ -47,7 +47,7 @@ fun Array<out String>.toParamsAndOptions(): Pair<Array<String>, Map<String, Stri
   val options = mutableMapOf<String, String?>()
 
   // regards args until starts options
-  while (!isOption(argsList.peekFirst())) {
+  while (argsList.isNotEmpty() && !isOption(argsList.peekFirst())) {
     params.add(argsList.pollFirst())
   }
 
@@ -67,6 +67,21 @@ fun Array<out String>.toParamsAndOptions(): Pair<Array<String>, Map<String, Stri
     }
   }
   return params.toTypedArray() to options.toMap()
+}
+
+fun minToMaxOf(a: Int, b: Int): IntRange = if (a < b) a..b else b..a
+
+/**
+ *
+ */
+fun Pair<Location, Location>.horizontallyForEach(blockY: Int, action: (Location) -> Unit) {
+  println(minToMaxOf(this.first.blockX, this.second.blockX))
+  println(minToMaxOf(this.first.blockZ, this.second.blockZ))
+  for (x in minToMaxOf(this.first.blockX, this.second.blockX)) {
+    for (z in minToMaxOf(this.first.blockZ, this.second.blockZ)) {
+      action(Location(this.first.world, x.toDouble(), blockY.toDouble(), z.toDouble()))
+    }
+  }
 }
 
 /**
