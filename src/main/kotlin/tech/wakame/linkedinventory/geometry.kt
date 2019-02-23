@@ -125,7 +125,7 @@ class PseidoConcaveHull(val points: List<Point>) {
       .filter { it in unreached }
 
     val candidate = candidates
-      .minBy { it.distanceSq(center) }
+      .maxBy { it.distanceSq(center) }
     ?: throw NoSuchElementException()
 
     println("current: $current next: $candidate")

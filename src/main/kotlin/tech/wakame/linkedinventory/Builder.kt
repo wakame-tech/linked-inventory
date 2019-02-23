@@ -10,16 +10,19 @@ import org.bukkit.util.Vector
  */
 class Builder {
   /**
-   *
+   *  Assist to build a framework of building
    */
-  class FrameWork(val region: Pair<Location, Location>) {
+  class FrameWork(val options: Map<String, String?>, val region: Pair<Location, Location>) {
+    private var foundationVertices: List<Location>
+
     init {
-      val edges = detectEdges()
-      linkEdges(edges)
+      println(options)
+      foundationVertices = detectEdges()
+      connectEdges(foundationVertices)
     }
 
     /**
-     *
+     *  regard a block placed 1-block higher than the ground level as a vertex
      */
     private fun detectEdges(): List<Location> {
       // set ground level
@@ -31,7 +34,7 @@ class Builder {
       }
       val groundLevel = block.location.blockY
 
-      println("groundLevel: $groundLevel")
+      println("[/build fw] groundLevel: $groundLevel")
 
       // detect as vertex locates on the ground level + 1
       val vertices = mutableListOf<Location>()
@@ -44,22 +47,34 @@ class Builder {
       return vertices.toList()
     }
 
-    private fun linkEdges(edges: List<Location>) {
-      val type = edges.first().block.type
-      val y = edges.first().blockY
-      val world = edges.first().world
-      val points: List<Point> = edges.map { Point(it.blockX, it.blockZ) }
-      val concaveEdges = PseidoConcaveHull.Iterator(points).toList()
-      concaveEdges
-        .map {
-          Location(world, it.x.toDouble(), y.toDouble(), it.y.toDouble())
-        }
-        .windowed(2) { (c, n) ->
-          println("${c.inspect()} -> ${n.inspect()}")
-          (c to n).horizontallyForEach(y) {
-            it.block.type = type
+    /**
+     *  calculate vertices' pseido concave hull and connect vertices
+     */
+    private fun connectEdges(vertices: List<Location>) {
+      val type = vertices.first().block.type
+      val y = vertices.first().blockY
+      val world = vertices.first().world
+
+      val edges: List<Point> = vertices.map { Point(it.blockX, it.blockZ) }
+
+      try {
+        val concaveEdges = PseidoConcaveHull.Iterator(edges).toList()
+        concaveEdges
+          .map {
+            Location(world, it.x.toDouble(), y.toDouble(), it.y.toDouble())
           }
-        }
+          .windowed(2) { (c, n) ->
+            //          println("${c.inspect()} -> ${n.inspect()}")
+            (c to n).horizontallyForEach(y) {
+              it.block.type = type
+            }
+          }
+      } catch (e: NoSuchElementException) {
+        println("[/build fw] failed to connect edges.")
+        return
+      }
     }
+
+
   }
 }

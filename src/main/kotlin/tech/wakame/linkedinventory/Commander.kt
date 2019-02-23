@@ -1,12 +1,14 @@
 package tech.wakame.linkedinventory
 
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import tech.wakame.linkedinventory.Main.LIConfig
+import java.util.*
 
 /**
  * A group of Linked-inventory command's handlers
@@ -28,6 +30,7 @@ object Commander {
     command["tp"] = { sender, params, options -> tp(sender, params, options) }
     command["open"] = { sender, params, options -> open(sender, params, options) }
     command["build"] = { sender, params, options -> build(sender, params, options) }
+    command["cave"] = { sender, params, options -> cave(sender, params, options) }
   }
 
   /**
@@ -122,15 +125,78 @@ object Commander {
     return true
   }
 
-  fun build(sender: CommandSender, params: Array<String>, options: Map<String, String?>): Boolean {
-    val from = LIConfig.clipBoard[0]
-    val to = LIConfig.clipBoard[1]
-    if (from == null || to == null) {
-      sender.sendMessage("[/build] require 2 clipboarded locations")
+  /**
+   *
+   */
+  private fun build(sender: CommandSender, params: Array<String>, options: Map<String, String?>): Boolean {
+    /*
+    * [Usage]
+    *  /build <type> [options ...]
+    *
+    *  type:
+    *   fw : frame work
+    *
+    *   options:
+    *    --height <int> :
+    *    --story <int> :
+    *
+    */
+    if (params.size != 1) {
+      sender.sendMessage("[/build] please set type. type = \"fw\"")
       return false
     }
 
-    Builder.FrameWork(from to to)
+    return when (params.first()) {
+      "fw" -> {
+        val from = LIConfig.clipBoard[0]
+        val to = LIConfig.clipBoard[1]
+        if (from == null || to == null) {
+          sender.sendMessage("[/build fw] require 2 clipboarded locations")
+          return false
+        }
+
+        Builder.FrameWork(options, from to to)
+        true
+      }
+      else -> {
+        sender.sendMessage("[/build] unknown type. type = \"fw\"")
+        false
+      }
+    }
+  }
+
+  /**
+   *
+   */
+  private fun cave(sender: CommandSender, params: Array<String>, options: Map<String, String?>): Boolean {
+    if (sender !is Player) return false
+
+    val LIMIT = 100000
+    var count = 0
+
+    fun bfs(start: Location) {
+      val history = mutableSetOf<String>()
+      val queue = LinkedList<Location>()
+      queue.push(start)
+      history.add(start.inspect())
+      var loc = start
+      while (queue.isNotEmpty()) {
+        loc = queue.pop()
+        if (LIMIT < count++) break
+        Constants.DIRECTIONS.forEach {
+          val next = loc.block.getRelative(it, 1)
+          if (next.isEmpty && next.location.blockY < 63 && next.location.inspect() !in history) {
+            history.add(next.location.inspect())
+            queue.push(next.location)
+          }
+        }
+      }
+      sender.sendMessage("last location: ${loc.inspect()}")
+    }
+
+    bfs(sender.location)
+
+    sender.sendMessage("[/cave] complete in $count iteration")
 
     return true
   }

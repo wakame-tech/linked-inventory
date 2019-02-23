@@ -11,3 +11,5 @@ commands:
     description: listup linked-inventpries
   build:
     description: test
+  cave:
+    description: cave analyther
