@@ -8,6 +8,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import tech.wakame.linkedinventory.Main.LIConfig
+import java.io.File
 import java.util.*
 
 /**
@@ -174,23 +175,33 @@ object Commander {
     val LIMIT = 100000
     var count = 0
 
+    fun locationDecorator(l: Location) = Triple(l.blockX, l.blockY, l.blockZ)
+
     fun bfs(start: Location) {
-      val history = mutableSetOf<String>()
+      val history = mutableSetOf<Triple<Int, Int, Int>>()
       val queue = LinkedList<Location>()
       queue.push(start)
-      history.add(start.inspect())
+      history.add(locationDecorator(start))
       var loc = start
       while (queue.isNotEmpty()) {
         loc = queue.pop()
         if (LIMIT < count++) break
         Constants.DIRECTIONS.forEach {
           val next = loc.block.getRelative(it, 1)
-          if (next.isEmpty && next.location.blockY < 63 && next.location.inspect() !in history) {
-            history.add(next.location.inspect())
+          if (next.isEmpty && next.location.blockY < 63 && locationDecorator(next.location) !in history) {
+            history.add(locationDecorator(next.location))
             queue.push(next.location)
           }
         }
       }
+
+      // filter location
+      val floors = history.filter { it.copy(second = it.second - 1) !in history }
+
+      // write plots
+      val src = File("plot.xyz")
+      sender.sendMessage("plots saved at ${src.absolutePath}")
+      src.absoluteFile.writeText(floors.map { (x, y, z) -> "$x $y $z" }.joinToString("\n"))
       sender.sendMessage("last location: ${loc.inspect()}")
     }
 
