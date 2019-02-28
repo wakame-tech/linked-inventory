@@ -2,8 +2,10 @@ package tech.wakame.linkedinventory
 
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.entity.Player
 import org.bukkit.util.BlockIterator
 import org.bukkit.util.Vector
+import kotlin.math.abs
 
 /**
  *
@@ -12,7 +14,7 @@ class Builder {
   /**
    *  Assist to build a framework of building
    */
-  class FrameWork(val options: Map<String, String?>, val region: Pair<Location, Location>) {
+  class FrameWork(val player: Player, val options: Map<String, String?>, val region: Pair<Location, Location>) {
     private var foundationVertices: List<Location>
 
     init {
@@ -76,5 +78,28 @@ class Builder {
     }
 
 
+  }
+
+  /**
+   *  Assist to build repeatedly structure
+   */
+  class Repeater(val player: Player, val options: Map<String, String?>, val region: Pair<Location, Location>, val blockType: Material) {
+    init {
+      val repeatX = options["-x"]?.toInt() ?: 1
+      val repeatZ = options["-z"]?.toInt() ?: 1
+      val width = abs(region.second.blockX - region.first.blockX) + 1
+      val depth = abs(region.second.blockZ - region.first.blockZ) + 1
+      val paddingWidth = options["--pw"]?.toInt() ?: 0
+      val paddingDepth = options["--pd"]?.toInt() ?: 0
+      player.sendMessage("$width ($paddingWidth) x $depth ($paddingDepth)")
+
+      var cx = 0
+      var cz = 0
+      repeat(repeatX) {
+        repeat(repeatZ) {
+
+        }
+      }
+    }
   }
 }

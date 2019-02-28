@@ -136,12 +136,15 @@ object Commander {
     *
     *  type:
     *   fw : frame work
+    *   rp : repeater
     *
     *   options:
     *    --height <int> :
     *    --story <int> :
     *
     */
+    if (sender !is Player) return false
+
     if (params.size != 1) {
       sender.sendMessage("[/build] please set type. type = \"fw\"")
       return false
@@ -156,18 +159,35 @@ object Commander {
           return false
         }
 
-        Builder.FrameWork(options, from to to)
+        Builder.FrameWork(sender, options, from to to)
+        true
+      }
+      "rp" -> {
+        val from = LIConfig.clipBoard[0]
+        val to = LIConfig.clipBoard[1]
+        if (from == null || to == null) {
+          sender.sendMessage("[/build rp] require 2 clipboarded locations")
+          return false
+        }
+
+        val blockType = sender.inventory.itemInMainHand.type
+        if (!blockType.isBlock) {
+          sender.sendMessage("[/build rp] require block to fill.")
+          return false
+        }
+
+        Builder.Repeater(sender, options, from to to, blockType)
         true
       }
       else -> {
-        sender.sendMessage("[/build] unknown type. type = \"fw\"")
+        sender.sendMessage("[/build] unknown type. type = \"fw\" or \"rp\"")
         false
       }
     }
   }
 
   /**
-   *
+   *  cave analyser
    */
   private fun cave(sender: CommandSender, params: Array<String>, options: Map<String, String?>): Boolean {
     if (sender !is Player) return false
@@ -178,7 +198,7 @@ object Commander {
     var count = 0
 
     // check points
-    val checkPoints = mutableListOf(locationDecorator(sender.location))
+    val checkPoints = mutableListOf<Triple<Int, Int, Int>>()
 
     fun bfs(start: Location) {
       // plot data
@@ -208,23 +228,32 @@ object Commander {
         }
       }
 
-      // write plots
-      val src = File("plot.xyz")
-      sender.sendMessage("plots saved at ${src.absolutePath}")
-      src.absoluteFile.writeText(floors.map { (x, y, z) -> "$x $y $z" }.joinToString("\n"))
+      if ("-p" in options.keys) {
+        val fileName = options["-p"] ?: "plot"
+        // write plots
+        val src = File("$fileName.xyz")
+        sender.sendMessage("plots saved at ${src.absolutePath}")
+        src.absoluteFile.writeText(floors.map { (x, y, z) -> "$x $y $z" }.joinToString("\n"))
+      }
     }
 
     bfs(sender.location)
 
     val minutes = count / 300
-    sender.sendMessage("[/cave] size: $count time estimation: $minutes min.")
-    sender.sendMessage(
-      checkPoints.map {
-        val isReached = Location(sender.world, it.first.toDouble(), it.second.toDouble(), it.third.toDouble()).block.lightLevel > 7
-        val check = if (isReached) "[x]" else "[ ]"
-        " $check (${it.first}, ${it.second}, ${it.third})"
-      }.toTypedArray()
-    )
+    sender.sendMessage("[/cave] size: $count, time estimation: $minutes min.")
+    sender.sendMessage("[/cave] \"/tp cave\" to go to entrance of the cave.")
+    LIConfig.locations.set("cave", sender.location)
+
+    if ("-c" in options.keys) {
+      sender.sendMessage(
+        checkPoints.map {
+          val isReached =
+            Location(sender.world, it.first.toDouble(), it.second.toDouble(), it.third.toDouble()).block.lightLevel > 7
+          val check = if (isReached) "[x]" else "[ ]"
+          " $check (${it.first}, ${it.second}, ${it.third})"
+        }.toTypedArray()
+      )
+    }
 
     return true
   }
