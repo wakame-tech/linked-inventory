@@ -172,12 +172,16 @@ object Commander {
   private fun cave(sender: CommandSender, params: Array<String>, options: Map<String, String?>): Boolean {
     if (sender !is Player) return false
 
+    fun locationDecorator(l: Location) = Triple(l.blockX, l.blockY, l.blockZ)
+
     val LIMIT = 100000
     var count = 0
 
-    fun locationDecorator(l: Location) = Triple(l.blockX, l.blockY, l.blockZ)
+    // check points
+    val checkPoints = mutableListOf(locationDecorator(sender.location))
 
     fun bfs(start: Location) {
+      // plot data
       val history = mutableSetOf<Triple<Int, Int, Int>>()
       val queue = LinkedList<Location>()
       queue.push(start)
@@ -195,19 +199,32 @@ object Commander {
         }
       }
 
-      // filter location
+      // filter only floor
       val floors = history.filter { it.copy(second = it.second - 1) !in history }
+
+      floors.forEachIndexed { index, it ->
+        if (index % 500 == 0) {
+          checkPoints.add(it)
+        }
+      }
 
       // write plots
       val src = File("plot.xyz")
       sender.sendMessage("plots saved at ${src.absolutePath}")
       src.absoluteFile.writeText(floors.map { (x, y, z) -> "$x $y $z" }.joinToString("\n"))
-      sender.sendMessage("last location: ${loc.inspect()}")
     }
 
     bfs(sender.location)
 
-    sender.sendMessage("[/cave] complete in $count iteration")
+    val minutes = count / 300
+    sender.sendMessage("[/cave] size: $count time estimation: $minutes min.")
+    sender.sendMessage(
+      checkPoints.map {
+        val isReached = Location(sender.world, it.first.toDouble(), it.second.toDouble(), it.third.toDouble()).block.lightLevel > 7
+        val check = if (isReached) "[x]" else "[ ]"
+        " $check (${it.first}, ${it.second}, ${it.third})"
+      }.toTypedArray()
+    )
 
     return true
   }
